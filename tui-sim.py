@@ -126,12 +126,17 @@ class SimShell(cmd.Cmd):
     def do_ls(self, line):
         """list contests, or lists round and problems if you are in a contest"""
         if self.contest_id == None:
-            json_data = query(self.session, "contests").json
+            json_data = query(self.session, "contests").json()
             for line in json_data:
                 if type(line) is list:
                     print("[" + str(line[0]) + "] " + line[1]) 
         else:
-            json_data = query(self.session, "contest/c" + self.contest_id).json
+            try:
+                json_data = query(self.session, "contest/c" + self.contest_id).json()
+            except:
+                print("Error: Selected contest is invalid")
+                return
+
             round_dict = {}
             for line in json_data[2]:
                 round_dict[line[0]] = []
@@ -152,7 +157,7 @@ class SimShell(cmd.Cmd):
         else:
             q = query(self.session, "contest/c" + line)
             try:
-                json_data = q.json
+                json_data = q.json()
             except:
                 print("Error: Invalid contest id")
                 return
@@ -171,9 +176,15 @@ class SimShell(cmd.Cmd):
         else:
             uid = get_user_id(self.session)[3::]
             if line == "":
-                json_data = query(self.session, "submissions/C" + self.contest_id + "/u" + uid).json
+                q = query(self.session, "submissions/C" + self.contest_id + "/u" + uid)
+                try:
+                    json_data = q.json()
+                except:
+                    print("Error: Selected contest is invalid")
+                    return
+
                 json_data.reverse()
-                for line in data:
+                for line in json_data:
                     if type(line) is list:
                         output = "[" + str(line[0]) + "] " + line[15] + " | " + line[10] + " | " + str(line[17])
                         output = color(output, line[16][0])
@@ -205,13 +216,14 @@ class SimShell(cmd.Cmd):
             print("Submit id: " + resp.text)
 
     def do_details(self, line):
+        """prints details of a submission"""
         q = query(self.session, "submissions/=" + line)
         try:
             json_data = q.json()
         except:
             print("Error: Invalid submission id")
             return
-
+        
         col, status = json_data[1][16]
         if status == "Compilation failed":
             print(json_data[1][8] + " | " + color(status, col))
