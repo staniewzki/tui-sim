@@ -1,4 +1,4 @@
-#!/bin/python
+#!/bin/python3
 
 import cmd, os, requests, getpass, pickle, json
 from bs4 import BeautifulSoup
@@ -37,14 +37,16 @@ def get_user_id(session):
     for a in dropdown:
         return a["href"]
 
-def green(string):
-    return "\033[32m" + string + "\033[0m"
 def red(string):
     return "\033[31m" + string + "\033[0m"
+def green(string):
+    return "\033[32m" + string + "\033[0m"
 def yellow(string):
     return "\033[33m" + string + "\033[0m"
 def purple(string):
     return "\033[35m" + string + "\033[0m"
+def cyan(string):
+    return "\033[36m" + string + "\033[0m"
 def bold(string):
     return "\033[1m"  + string + "\033[0m"
 
@@ -98,7 +100,7 @@ class SimShell(cmd.Cmd):
     contest_id = None
 
     def update_prompt(self):
-        self.prompt = green(self.username + "@sim ") + self.directory + " >>> "
+        self.prompt = bold(cyan(self.username + "@sim ")) + self.directory + " >>> "
 
     def start_session(self):
         try:
@@ -224,7 +226,12 @@ class SimShell(cmd.Cmd):
             print("Error: Invalid submission id")
             return
         
-        col, status = json_data[1][16]
+        try:
+            col, status = json_data[1][16]
+        except:
+            print("Error: Invalid submission id")
+            return
+
         if status == "Compilation failed":
             print(json_data[1][8] + " | " + color(status, col))
             soup = BeautifulSoup(json_data[1][19], "html.parser")
@@ -254,7 +261,7 @@ class SimShell(cmd.Cmd):
             f.write(resp.content)
 
         def open_statement():
-            os.system("xdg-open " + statement_path + " > /dev/null 2>&1")
+            os.system("xdg-open '" + statement_path + "' > /dev/null 2>&1")
 
         import threading
         t = threading.Thread(target=open_statement)
